@@ -1,7 +1,7 @@
 
 # DATABASE
 DATABASE = {
-    "DB_HOST" : "ip_base_de_datos",
+    "DB_HOST" : "161.35.60.197",
     "DB_SERVICE" : "tcs7",
     "DB_USER" : "modulo4",
     "DB_PASSWORD" : "modulo4"

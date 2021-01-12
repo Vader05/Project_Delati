@@ -16,7 +16,15 @@ class Controller:
         return id
 
     def registrar_oferta(self, con, oferta):        
-            idResult = self.dboferta.insert_oferta(con, oferta)            
+        return self.dboferta.insert_oferta(con, oferta)
+
+    ##metodo añadido para insertar las tuplas del detalle de la oferta
+    def registrar_detalle_oferta(self, con, listaDetalle):
+        #print(listaDetalle)
+        for detalle in listaDetalle:
+            print("----------------analizando el detalle en tuplas---------------------")
+            print(detalle)
+            idOfertaDetalle=self.dbofertadetalle.insertOfertaDetalle(con, detalle)            
 
     def registrar_ofertas(self, con, lista_oferta):
         print(len(lista_oferta))
@@ -39,3 +47,15 @@ class Controller:
             descripcion_normalizada = " ".join(new_words)
             element["descripcion_normalizada"] = descripcion_normalizada
         # DBOfertadetalle.update_requisito(con, element)
+
+    #prepara descripcion en una lista de diccionarios para el insert en oferta_detalle
+    def analizaSegundoLi(self,tuplas, row):
+        tuplafinal=[]
+        avisotupla=str(tuplas).replace("<li>","").replace("</li>","").split("<br/>")
+        for aviso in avisotupla:
+            a={}
+            if aviso.strip():
+                a["id_oferta"]= row
+                a["descripcion"]=aviso.strip()
+                tuplafinal.append(a)
+        return tuplafinal

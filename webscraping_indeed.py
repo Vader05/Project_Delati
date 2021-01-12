@@ -46,7 +46,9 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
         for el in avisos:
             #print("-------avisos--------")
             #print(len(avisos))
-            oferta = {}    
+            oferta = {}
+            lista_tupla=[]
+            lista_final=[]    
             #cont = cont + 1
             #if cant_ofertas is not None:
             #    if cont > cant_ofertas:
@@ -92,7 +94,23 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
             lista_oferta.append(oferta)            
 
-            controller.registrar_oferta(con, oferta)
+            row= controller.registrar_oferta(con, oferta)
+
+            aviso_tupla = soup_deta.find("div", {"id": "jobDescriptionText"}).findChildren()
+            #print(aviso_deta)
+            for av in aviso_tupla:
+                if av.get_text() not in lista_tupla:
+                    lista_tupla.append(av.get_text())
+
+            for descripcion in lista_tupla:
+                a={}
+                a["id_oferta"]=row
+                a["descripcion"]=descripcion
+                lista_final.append(a)
+
+            #print(lista_final)
+            controller.registrar_detalle_oferta(con, lista_final)
+        print("------------------fin de aviso----------------")
                   
     return lista_oferta
 

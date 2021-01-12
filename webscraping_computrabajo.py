@@ -57,7 +57,8 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
             #print("-------avisos--------")
             #print(len(avisos))
-            oferta = {}    
+            oferta = {}
+                
             #cont = cont + 1
             #if cant_ofertas is not None:
             #    if cont > cant_ofertas:
@@ -127,8 +128,39 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
             lista_oferta.append(oferta)            
 
-            controller.registrar_oferta(con, oferta)
-                  
+            row = controller.registrar_oferta(con, oferta)
+            print("id de la oferta: ",row)
+
+            tuplas=[]
+            aviso_tupla = soup_deta.find("div", {"class": "bWord"}).find("ul")
+            if aviso_tupla!=None:
+                i=0                                            
+                aviso_detalle_tupla= soup_deta.find("div", {"class": "bWord"}).find("ul").findChildren()
+                for aviso in aviso_detalle_tupla:
+                    detalle={}
+
+                    if aviso.get_text().strip():
+                        
+                        if i==2:
+                            print("-------------analisando li2------------------")
+                            #print(aviso.get_text())
+                            tuplaLista=controller.analizaSegundoLi(aviso, row)
+                            #print(tuplaLista)
+                            controller.registrar_detalle_oferta(con, tuplaLista)
+
+                        else:
+                            detalle["id_oferta"]=row
+                            detalle["descripcion"]=aviso.get_text().strip()
+                            tuplas.append(detalle)
+                            #print(aviso.get_text())
+                            print("-----------------------------")
+                
+                    i=i+1
+                print("fin de tupla")
+                #print(tuplas)
+                controller.registrar_detalle_oferta(con, tuplas)
+                
+            print("fin de aviso")
     return lista_oferta
 
 

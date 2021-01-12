@@ -94,6 +94,6 @@ def delati_indeed():
     print(listaOferta)
 
 if __name__ == "__main__":
-    delati_compuTrabajo()
+    #delati_compuTrabajo()
     delati_indeed()
 
