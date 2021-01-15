@@ -10,8 +10,8 @@ class DBWebscraping:
           mydb = connection.connect()         
           cur = mydb.cursor() 
           # insertando un registro
-          sql = "insert into webscraping (busqueda, busqueda_area, pagina_web, url_pagina, url_busqueda,fecha_creacion,fecha_modificacion) values (%s,%s,%s,%s,%s,current_date,current_date)"
-          params = (carga["busqueda"], carga["busqueda_area"], carga["pagina"], carga["url_principal"],carga["url_busqueda"])
+          sql = "insert into webscraping (busqueda, busqueda_area, pagina_web, url_pagina, url_busqueda,fecha_creacion,fecha_modificacion, id_keyword) values (%s,%s,%s,%s,%s,current_date,current_date, %s)"
+          params = (carga["busqueda"], carga["busqueda_area"], carga["pagina"], carga["url_principal"],carga["url_busqueda"],carga["id_keyword"])
                     
           cur.execute(sql, params)                 
 
@@ -92,3 +92,25 @@ class DBOfertadetalle:
             mydb.close()
         
         return 1
+
+class DBkeyWord:
+    def __init__(self):
+        pass
+
+    def getwords(self,connection):
+        try:
+            mydb= connection.connect()
+            mycursor= mydb.cursor()
+            sql= "select id_keyword, descripcion from keyword_search"
+            mycursor.execute(sql)
+            palabras= list(mycursor)
+            
+            # close the communication with the PostgreSQL
+            mycursor.close()
+            mydb.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print ("-------------Exception, psycopg2.DatabaseError-------------------")
+            print (error)
+            mydb.close()
+        
+        return palabras
