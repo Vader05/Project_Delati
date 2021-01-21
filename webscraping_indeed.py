@@ -62,6 +62,7 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
             oferta["url_pagina"] = url_pagina
             # Almacena la url de la oferta
             oferta["url"] = link
+            print(link)
 
             oferta["puesto"]  =el.find("h2", {"class": "title"}).get_text()
             
@@ -94,7 +95,7 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
             lista_oferta.append(oferta)            
 
-            row= controller.registrar_oferta(con, oferta)
+            row = controller.registrar_oferta(con, oferta)
 
             aviso_tupla = soup_deta.find("div", {"id": "jobDescriptionText"}).findChildren()
             #print(aviso_deta)

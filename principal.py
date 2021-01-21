@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import psycopg2
 from configuration import *
 import webscraping_computrabajo
 import webscraping_indeed
@@ -33,87 +32,71 @@ def construir_busqueda_filtro(carga, filtro):
     carga["url_pagina"] = carga["url_principal"]
     carga["url_busqueda"] = urlbusqueda
 '''
-#construyendo url de busqueda computrabajo
+#construyendo url de busqueda computrabajo con filtro en lima
 def url_busqueda_computrabajo(filtro):
     busqueda = "trabajo-de-" + filtro.replace(" ", "-")+"-en-lima?q="+filtro.replace(" ","%20")
     return busqueda
 
-def set_url_busqueda_indeed(carga):
-    #URL DE PORTAL DELATI
-    carga["url_principal"] = INDEED["WS_PORTAL_LABORAL_URL"]
-    urlbusqueda = "/jobs?q=Analista+programador&l=Lima"
-    paginado = "&start="
+#construyendo url busqueda indeed con filtro en lima
+def url_busqueda_indeed(filtro):
+    busqueda = "/jobs?q=" + filtro.replace(" ", "+")+"&l=Lima"
+    return busqueda
 
-    carga["url_prefix"] = carga["url_principal"] + urlbusqueda + paginado
-    carga["url_sufix"] = ""
-    carga["url_busqueda"] = carga["url_principal"] + urlbusqueda
-
-def set_url_busqueda_compuTrabajo(carga):
-    #MODIFICADO URL COMPU-TRABAJO
-    carga["url_principal"] = COMPUTRABAJO["WS_PORTAL_LABORAL_URL"]
-    urlbusqueda = "/trabajo-de-analista-programador-en-lima?q=analista%20programador"
-    paginado = "&p="
-    carga["url_prefix"] = carga["url_principal"] + urlbusqueda + paginado
-    carga["url_sufix"] = ""
-    carga["url_busqueda"] = carga["url_principal"] + urlbusqueda
-
-#retorna el url de las palabras clave para todos los portales
-def set_url_busqueda_gozu(carga, sitio, filtro):
+#retorna las url de la busqueda con palabras clave para todos los portales
+#carga: diccionario de sitio web
+#sitio: diccionario del sitio web del archivo configuracion
+#fitro: palabra clave de busqueda
+def set_url_busqueda(carga, sitio, filtro):
     #MODIFICADO URL COMPU-TRABAJO
     carga["url_principal"] = sitio["WS_PORTAL_LABORAL_URL"]
-    urlbusqueda = url_busqueda_computrabajo(filtro)
+    if sitio["WS_PORTAL_LABORAL"]=="indeed":
+        urlbusqueda = url_busqueda_indeed(filtro)
+    elif sitio["WS_PORTAL_LABORAL"]=="computrabajo":
+        urlbusqueda = url_busqueda_computrabajo(filtro)
+
     paginado = sitio["PAGINADO"]
     carga["url_prefix"] = carga["url_principal"] + urlbusqueda + paginado
     carga["url_sufix"] = ""
     carga["url_busqueda"] = carga["url_principal"] + urlbusqueda
 
+#metodo para la conxión a la DB
 def connect_bd():
     con = Connection(DATABASE["DB_HOST"], DATABASE["DB_SERVICE"], DATABASE["DB_USER"], DATABASE["DB_PASSWORD"])
     con.connect()
     return con
 
-def delati_compuTrabajo():
+#metodo para llegar carga e insertar en la base de datos
+#sitio: diccionario del sitio web del acrhivo de configuración
+def delati_portal(sitio):
     controller = Controller()
     con = connect_bd()
+    #filtro es una tupla con id y descripcion de la tabla keyword_search
     palabras= controller.getwords(con)
     for filtro in palabras:
         carga = {}
-        carga["pagina"] = COMPUTRABAJO["WS_PORTAL_LABORAL"]
-        carga["cant_paginas"] = COMPUTRABAJO["WS_PAGINAS"]
-        carga["pagina_inicial"] = COMPUTRABAJO["WS_PAGINA_INICIAL"]
-        carga["cant_ofertas"] = COMPUTRABAJO["WS_OFERTAS"]
-        carga["busqueda_area"] = COMPUTRABAJO["WS_AREA"]
+        carga["pagina"] = sitio["WS_PORTAL_LABORAL"]
+        carga["cant_paginas"] = sitio["WS_PAGINAS"]
+        carga["pagina_inicial"] = sitio["WS_PAGINA_INICIAL"]
+        carga["cant_ofertas"] = sitio["WS_OFERTAS"]
+        carga["busqueda_area"] = sitio["WS_AREA"]
         carga["busqueda"] = ""
         carga["id_keyword"]=filtro[0]
-        #set_url_busqueda_compuTrabajo(carga)
-        set_url_busqueda_gozu(carga, COMPUTRABAJO, filtro[1])
+        #asigna url de busqueda con filtro a carga 
+        set_url_busqueda(carga, sitio, filtro[1])
+        #registra pagina en tabla webscraping y retorna su id
         carga["id_carga"] = controller.registrar_webscraping(con, carga)
-        '''
-        listaOferta = webscraping_computrabajo.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
-                                                carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
-                                                carga["id_carga"])
-        '''
-        #print(listaOferta)
-
-def delati_indeed():
-    controller = Controller()
-    con = connect_bd()
-    carga = {}
-    carga["pagina"] = INDEED["WS_PORTAL_LABORAL"]
-    carga["cant_paginas"] = INDEED["WS_PAGINAS"]
-    carga["pagina_inicial"] = INDEED["WS_PAGINA_INICIAL"]
-    carga["cant_ofertas"] = INDEED["WS_OFERTAS"]
-    carga["busqueda_area"] = INDEED["WS_AREA"]
-    carga["busqueda"] = ""
-    set_url_busqueda_indeed(carga)
-    carga["id_carga"] = controller.registrar_webscraping(con, carga)
-
-    listaOferta = webscraping_indeed.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
-                                               carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
-                                               carga["id_carga"])
-    print(listaOferta)
+        if sitio["WS_PORTAL_LABORAL"]=="computrabajo":
+            #inserta avisos en la tabla oferta y oferta_detalle
+            listaOferta = webscraping_computrabajo.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
+                                                    carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
+                                                    carga["id_carga"])
+        elif sitio["WS_PORTAL_LABORAL"]=="indeed":
+            listaOferta = webscraping_indeed.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
+                                                    carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
+                                                    carga["id_carga"])
+    print("fin de filtro")
 
 if __name__ == "__main__":
-    delati_compuTrabajo()
-    #delati_indeed()
+    #delati_portal(COMPUTRABAJO)
+    delati_portal(INDEED)
 

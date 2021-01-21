@@ -24,8 +24,8 @@ class Controller:
     def registrar_detalle_oferta(self, con, listaDetalle):
         #print(listaDetalle)
         for detalle in listaDetalle:
-            print("----------------analizando el detalle en tuplas---------------------")
-            print(detalle)
+            #print("----------------analizando el detalle en tuplas---------------------")
+            #print(detalle)
             idOfertaDetalle=self.dbofertadetalle.insertOfertaDetalle(con, detalle)            
 
     def registrar_ofertas(self, con, lista_oferta):

@@ -12,24 +12,22 @@ class DBWebscraping:
           # insertando un registro
           sql = "insert into webscraping (busqueda, busqueda_area, pagina_web, url_pagina, url_busqueda,fecha_creacion,fecha_modificacion, id_keyword) values (%s,%s,%s,%s,%s,current_date,current_date, %s)"
           params = (carga["busqueda"], carga["busqueda_area"], carga["pagina"], carga["url_principal"],carga["url_busqueda"],carga["id_keyword"])
-                    
           cur.execute(sql, params)                 
-
           mydb.commit()
 
           sql = "SELECT last_value FROM webscraping_id_webscraping_seq"
           cur.execute(sql)  
-          row_id = int(cur.fetchone()[0])
+          id_webscraping = int(cur.fetchone()[0])
           
           # close the communication with the PostgreSQL
           cur.close()
           mydb.close()      
         except (Exception, psycopg2.DatabaseError) as error:                
-                print (error)
-                mydb.close()
+            print (error)
+            mydb.close()
         
-        print(row_id)        
-        return row_id
+        print("id webscraping: ",id_webscraping)        
+        return id_webscraping
 
 
 class DBOferta:
@@ -37,6 +35,7 @@ class DBOferta:
         pass
 
     def insert_oferta(self, connection, oferta):        
+        id_oferta=0
         try:
             mydb = connection.connect()
             cur = mydb.cursor()                                    
@@ -45,21 +44,21 @@ class DBOferta:
             cur.execute(sql, params)        
             mydb.commit()            
 
-
             sql = "SELECT last_value FROM Oferta_id_Oferta_seq"
             cur.execute(sql)  
-            row_id = int(cur.fetchone()[0])  
+            id_oferta = int(cur.fetchone()[0])
+            print(id_oferta)  
             
             # close the communication with the PostgreSQL
             cur.close()
             mydb.close()                           
 
         except (Exception, psycopg2.DatabaseError) as error:                
-                print ("-------------Exception, psycopg2.DatabaseError-------------------")
-                print (error)
-                mydb.close()        
+            print ("-------------Exception, psycopg2.DatabaseError-------------------")
+            print (error)
+            mydb.close()        
             
-        return row_id
+        return id_oferta
 
 
 class DBOfertadetalle:
@@ -80,7 +79,7 @@ class DBOfertadetalle:
             mydb= connection.connect()
             mycursor= mydb.cursor()
             sql= "insert into oferta_detalle ( id_ofertadetalle, id_oferta, descripcion, fecha_creacion, fecha_modificacion) values (DEFAULT,%s,%s,current_date,current_date)"
-            params= (detalle["id_oferta"],detalle["descripcion"])
+            params= (detalle["id_oferta"],detalle["descripcion"].strip())
             mycursor.execute(sql, params)
             mydb.commit()
             # close the communication with the PostgreSQL
