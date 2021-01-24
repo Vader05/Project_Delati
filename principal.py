@@ -5,7 +5,8 @@ import webscraping_computrabajo
 import webscraping_indeed
 from controller import Controller
 from dbconnection import Connection
-
+from dboperation import DatesDB
+import datetime
 '''
 def construir_busqueda_filtro(carga, filtro):
     carga["busqueda"] = filtro
@@ -73,6 +74,9 @@ def delati_portal(sitio):
     #filtro es una tupla con id y descripcion de la tabla keyword_search
     palabras= controller.getwords(con)
     for filtro in palabras:
+        print("\033[1;30m"+'ID_KEYWORD: '+ str(filtro[0]) + ' - PALABRA A ANALIZAR: '+ str(filtro[1]))
+        #print('PALABRA A ANALIZAR: ', filtro[1])
+        fecha_max_publicacion=get_Fecha_Max_Publicacion(filtro[0])
         carga = {}
         carga["pagina"] = sitio["WS_PORTAL_LABORAL"]
         carga["cant_paginas"] = sitio["WS_PAGINAS"]
@@ -89,14 +93,25 @@ def delati_portal(sitio):
             #inserta avisos en la tabla oferta y oferta_detalle
             listaOferta = webscraping_computrabajo.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
                                                     carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
-                                                    carga["id_carga"])
+                                                    carga["id_carga"], fecha_max_publicacion)
         elif sitio["WS_PORTAL_LABORAL"]=="indeed":
             listaOferta = webscraping_indeed.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
                                                     carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
                                                     carga["id_carga"])
     print("fin de filtro")
 
-if __name__ == "__main__":
-    #delati_portal(COMPUTRABAJO)
-    delati_portal(INDEED)
+def get_Fecha_Max_Publicacion(id_keyword):
+    con = connect_bd()
+    dbDates = DatesDB()
+    fecha_list=dbDates.getDate(con)
+    fecha_max_publicacion=datetime.date(2002, 12, 31)
+    for fecha_list_element in fecha_list:
+        if(fecha_list_element[1]==id_keyword):
+            if fecha_list_element[0]!=None:
+                fecha_max_publicacion=fecha_list_element[0]
+                return fecha_max_publicacion
+    return fecha_max_publicacion
 
+if __name__ == "__main__":
+    delati_portal(COMPUTRABAJO)
+    #delati_portal(INDEED)

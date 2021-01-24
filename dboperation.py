@@ -39,15 +39,15 @@ class DBOferta:
         try:
             mydb = connection.connect()
             cur = mydb.cursor()                                    
-            sql = "insert into Oferta (id_webscraping, titulo,empresa,lugar,salario,oferta_detalle,url_oferta,url_pagina,fecha_creacion,fecha_modificacion) values (%s,%s,%s,%s,%s,%s,%s,%s,current_date,current_date)"            
-            params = (oferta["id_carga"], oferta["puesto"].strip(), oferta["empresa"].strip(), oferta["lugar"].strip(),oferta["salario"].strip(),oferta["detalle"].strip(), oferta["url"], oferta["url_pagina"])
+            sql = "insert into Oferta (id_webscraping, titulo,empresa,lugar,salario,oferta_detalle,url_oferta,url_pagina,fecha_creacion,fecha_modificacion, fecha_publicacion) values (%s,%s,%s,%s,%s,%s,%s,%s,current_date,current_date,%s)"            
+            params = (oferta["id_carga"], oferta["puesto"].strip(), oferta["empresa"].strip(), oferta["lugar"].strip(),oferta["salario"].strip(),oferta["detalle"].strip(), oferta["url"], oferta["url_pagina"], oferta["fecha_publicacion"])
             cur.execute(sql, params)        
             mydb.commit()            
 
             sql = "SELECT last_value FROM Oferta_id_Oferta_seq"
             cur.execute(sql)  
             id_oferta = int(cur.fetchone()[0])
-            print(id_oferta)  
+            #print(id_oferta)  
             
             # close the communication with the PostgreSQL
             cur.close()
@@ -113,3 +113,29 @@ class DBkeyWord:
             mydb.close()
         
         return palabras
+
+class DatesDB:
+    def __init__(self):
+        pass
+
+    def getDate(self,connection):
+        try:
+            mydb= connection.connect()
+            mycursor= mydb.cursor()
+            sql= '''select max(o.fecha_publicacion), w.id_keyword from oferta as o inner join webscraping as w on o.id_webscraping=w.id_webscraping
+                        where w.pagina_web='computrabajo' 
+                    group by (w.pagina_web, w.id_keyword);'''
+            mycursor.execute(sql)
+            tupla=list(mycursor)
+            # close the communication with the PostgreSQL
+            mycursor.close()
+            mydb.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print ("-------------Exception, psycopg2.DatabaseError-------------------")
+            print (error)
+            mydb.close()
+        
+        return tupla
+
+#RESETEAR FECHAS
+#update oferta set fecha_publicacion=null;
