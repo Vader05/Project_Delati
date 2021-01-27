@@ -6,7 +6,7 @@ import requests
 from controller import Controller
 from configuration import COMPUTRABAJO, DATES
 import datetime
-
+from timeit import default_timer
 
 def contain_br(contents):
     for element in contents:
@@ -63,166 +63,148 @@ def get_fecha_publicacion(fecha_actual, fecha_publicacion):
             print('El anuncio es de hoy')
     return fecha_aviso
 
-def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, cant_paginas, cant_ofertas, id_carga, fecha_max_publicacion):
+def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, cant_paginas, cant_ofertas, id_carga):
     controller = Controller()
     lista_oferta = []       
     i=1
     #HALLAMOS LA FECHA ACTUAL
-
     fecha_actual=datetime.datetime.now() 
 
     #for i in range(pagina_inicial, cant_paginas):
     for i in range(COMPUTRABAJO["WS_PAGINA_INICIAL"], COMPUTRABAJO["WS_PAGINAS"]):
         print("\033[0;32m"+'NUMERO DE PÁGINA: '+ str(i))
 
-        #print(prefix_url)
-
-        #MODIFICADO-----------------------------
+        #añadimos los paginados de la web
         url_pagina = prefix_url + str(i)
-        #print("------------------for i in range(pagina_inicial, cant_paginas)-------------------")
-        #print(i)
 
+        #web scraping
         req = requests.get(url_pagina)
         soup = BeautifulSoup(req.text, "lxml")
-        #avisos = soup.find_all("div", {"class": "aviso-simple"})
-        
-        
-        #avisos=soup.findAll("table")[4].find("td", {"id": "resultsCol"}).findAll("div", {"class": "jobsearch-SerpJobCard"})                        
-        avisos=soup.findAll("section")[0].find("div",{"class": "gO"}).findAll("div", {"class": "bRS"})                      
-        
-        
-        
-        #print("----------------------")
-        #print(avisos)
-        #cont = 0        
+
+        #LISTA DE ANUNCIOS WEB SCRAPING
+        try:
+            avisos=soup.findAll("section")[0].find("div",{"class": "gO"}).findAll("div", {"class": "bRS"})                      
+        except:
+            avisos=[]
+
+
         lista_oferta = []
         for el in avisos:
-            #MODIFICADO
+            
+            #OBTENEMOS CARD DE LA OFERTA
             el=el.find("div",{"class", "iO"})
 
-            #MODIFICADO PARA FECHAS 22/01/2021
+            oferta = {}
             
-            #Class de fecha de publicacion del anuncio
-            fecha_publicacion=el.find("span",{"class":"dO"}).get_text()
-            #OBTENEMOS LA FECHA DE AVISO
-            fecha_aviso=get_fecha_publicacion(fecha_actual, fecha_publicacion)
-            #COMPARAMOS FECHAS
-            print('FECHA AVISO:', fecha_aviso)
-            print('FECHA MAYOR:', fecha_max_publicacion)
-            if fecha_aviso>fecha_max_publicacion:
+            # Obtiene el link para poder ver el detalle de la oferta
+            href = el.find("a")['href']
+            link = url_principal + href
+            oferta["id_carga"] = id_carga
+            # Almacena la url de la pagina
+            oferta["url_pagina"] = url_pagina
+             # Almacena la url de la oferta
+            oferta["url"] = link    
+
+            #VEMOS SI LA PUBLICACION SE REPITE
+            redundancia  = controller.evitar_redundancia(con, oferta)
+            if redundancia is None :
+                print("---------------------------------")
                 print("\033[0;34m"+'REGISTRANDO ANUNCIO A LA BD')
 
-                #print("-------avisos--------")
-                #print(len(avisos))
-                oferta = {}
-                
-                oferta["fecha_publicacion"]=fecha_aviso
-                #cont = cont + 1
-                #if cant_ofertas is not None:
-                #    if cont > cant_ofertas:
-                #        break
-                # Obtiene el link para poder ver el detalle de la oferta
-                href = el.find("a")['href']
-                link = url_principal + href
-
-                oferta["id_carga"] = id_carga
-                # Almacena la url de la pagina
-                oferta["url_pagina"] = url_pagina
-                # Almacena la url de la oferta
-                oferta["url"] = link
-
-                #MODIFICADO
-
-                #oferta["puesto"]  =el.find("h2", {"class": "title"}).get_text()
+                #OBTENEMOS EL PUESTO DEL AVISO
                 oferta["puesto"]  =el.find("h2", {"class": "tO"}).get_text()
-                
-                
-                # empresa= el.find("span", {"class": "company"}) 
+                print("PUESTO DEL AVISO: ",oferta["puesto"] )
+
+                #OBTENEMOS EL NOMBRE DE LA EMPRESA DEL AVISO
                 empresa= el.find("span", {"itemprop": "name"})
                 if empresa!=None:                            
                     oferta["empresa"]=empresa.get_text()
                 else:
                     oferta["empresa"]=''
-                
-                # lugar   = el.find("span", {"class": "location"})
+                print("EMPRESA: ", oferta["empresa"].strip() )
+
+                #OBTENEMOS LA UBICACION DEL AVISO
                 lugar   = el.find("span", {"itemprop": "addressLocality"})
                 region  = el.find("span", {"itemprop": "addressRegion"})
                 if lugar!=None:                                            
                     oferta["lugar"]=lugar.get_text() + " - " + region.get_text()
                 else:
                     oferta["lugar"]=''                
-                    
-                #print("--------------------------------")
+                print("UBICACION: ",oferta["lugar"] )
 
-                #MODIFICANDO
-
-                # Accede al contenido HTML del detalle de la oferta
-                reqDeta = requests.get(oferta["url"])            
-                soup_deta = BeautifulSoup(reqDeta.text, "lxml")
-
-
-                #aviso_deta = soup_deta.find("div", {"id": "vjs-desc"})
-                aviso_deta = soup_deta.find("div", {"class": "bWord"})
-                if aviso_deta!=None:                                            
-                    oferta["detalle"]=aviso_deta.get_text()
-
-
-                #salario = el.find("span", {"class": "salaryText"})  
-                # salario= soup_deta.findAll("section")[4]
-                # print(salario)         
-                salario = soup_deta.findAll("section")[4].find("ul").findAll("li")[5].find("p")            
-                if salario!=None:                                            
-                    oferta["salario"]=salario.get_text()
+                #OBTENEMOS LA FECHA DE AVISO
+                fecha_publicacion=el.find("span",{"class":"dO"}).get_text()
+                oferta["time_publicacion"]=fecha_publicacion
+                print("FECHA: ", oferta["time_publicacion"])
+                fecha_aviso=get_fecha_publicacion(fecha_actual, fecha_publicacion)
+                if fecha_aviso!=None:
+                    oferta["fecha_publicacion"]=fecha_aviso
                 else:
-                    oferta["salario"]='' 
+                    oferta["fecha_publicacion"]=''   
+                print("FECHA DEL AVISO: ",oferta["fecha_publicacion"] )
 
-                # # Accede al contenido HTML del detalle de la oferta
-                # reqDeta = requests.get(oferta["url"])            
-                # soup_deta = BeautifulSoup(reqDeta.text, "lxml")
+                try:
+                    # Accede al contenido HTML del detalle de la ofertac
+                    reqDeta = requests.get(oferta["url"])            
+                    soup_deta = BeautifulSoup(reqDeta.text, "lxml")
 
-                # #aviso_deta = soup_deta.find("div", {"id": "vjs-desc"})
-                # aviso_deta = soup_deta.find("div", {"id": "jobDescriptionText"})
-                # if aviso_deta!=None:                                            
-                #     oferta["detalle"]=aviso_deta.get_text()
+                    #OBTENEMOS EL AREA DEL AVISO
+                    area=soup_deta.find("section", {"class": "detalle_oferta"}).find("header").find("span")
+                    if area!=None:
+                        oferta["area"]=area.get_text()
+                    else:
+                        oferta["area"]=''
+                    print("AREA DEL AVISO: ",oferta["area"].strip() )
 
-                lista_oferta.append(oferta)            
+                    #Obtenemos el texto plano de la oferta
+                    aviso_deta = soup_deta.find("div", {"class": "bWord"})
+                    if aviso_deta!=None:                                            
+                        oferta["detalle"]=aviso_deta.get_text()
+                    else:
+                        oferta["detalle"]=''
 
-                row = controller.registrar_oferta(con, oferta)
-                print("id de la oferta: ",row)
+                    #Obtenemos salario        
+                    salario = soup_deta.findAll("section")[4].find("ul").findAll("li")[5].find("p")            
+                    if salario!=None:                                            
+                        oferta["salario"]=salario.get_text()
+                    else:
+                        oferta["salario"]='NO INFORMADO' 
+                    print("SALARIO: ", oferta["salario"].strip())
+                    
+                    #OBTENEMOS EL ID DEL ANUNCIO
+                    oferta["id_anuncioempleo"] = link.split('-')[-1]
+                    print("ID DEL ANUNCION: ", oferta["id_anuncioempleo"])
 
-                tuplas=[]
-                aviso_tupla = soup_deta.find("div", {"class": "bWord"}).find("ul")
-                if aviso_tupla!=None:
-                    i=0                                            
-                    aviso_detalle_tupla= soup_deta.find("div", {"class": "bWord"}).find("ul").findChildren()
-                    for aviso in aviso_detalle_tupla:
-                        detalle={}
+                    #Añadimos la oferta a una lista
+                    lista_oferta.append(oferta)            
 
-                        if aviso.get_text().strip():
-                            
-                            if i==2:
-                                #print("-------------analisando li2------------------")
-                                #print(aviso.get_text())
-                                tuplaLista=controller.analizaSegundoLi(aviso, row)
-                                #print(tuplaLista)
-                                controller.registrar_detalle_oferta(con, tuplaLista)
+                    #Obtenemos su ID del WEB SCRAPING
+                    row = controller.registrar_oferta(con, oferta)
+                    print("id de la oferta: ",row)
 
-                            else:
+                    #HALLAMOS EL TEXTO PLANO SEPARADO POR TUPLAS DEL ANUNCIO
+                    inicio=default_timer()
+                    tuplas=[]
+                    aviso_tupla = soup_deta.find("div", {"class": "bWord"}).find("ul").findChildren()
+                    if aviso_tupla != []:
+                        tuplaLista=controller.analizaSegundoLi(aviso_tupla[2],row)
+                        controller.registrar_detalle_oferta(con, tuplaLista)
+                        for aviso in aviso_tupla[3:]:
+                            detalle={}
+                            if aviso.get_text().strip():
                                 detalle["id_oferta"]=row
                                 detalle["descripcion"]=aviso.get_text().strip()
                                 tuplas.append(detalle)
-                                #print(aviso.get_text())
-                                #print("-----------------------------")
-                    
-                        i=i+1
-                    #print("fin de tupla")
-                    #print(tuplas)
-                    controller.registrar_detalle_oferta(con, tuplas)
-                    
-                #print("fin de aviso")
+                        controller.registrar_detalle_oferta(con, tuplas)
+                    fin=default_timer()
+                    print("DURACION: ", str(fin-inicio))    
+                    #print("fin de aviso")
+
+                except:
+                    print('NO SE EXISTE INFORMACIÓN COMPLETA DEL ANUNCIO.')
             else: 
                 print("\033[0;31m"+'NO REGISTRAR A LA BD')
-                return None
+                print("--------------------------")
     
     return lista_oferta
 

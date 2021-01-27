@@ -35,7 +35,8 @@ def construir_busqueda_filtro(carga, filtro):
 '''
 #construyendo url de busqueda computrabajo con filtro en lima
 def url_busqueda_computrabajo(filtro):
-    busqueda = "trabajo-de-" + filtro.replace(" ", "-")+"-en-lima?q="+filtro.replace(" ","%20")
+    #busqueda = "trabajo-de-" + filtro.replace(" ", "-")+"-en-lima?q="+filtro.replace(" ","%20")
+    busqueda = "trabajo-de-" + filtro.replace(" ", "-")+"?q="+filtro.replace(" ","%20")
     return busqueda
 
 #construyendo url busqueda indeed con filtro en lima
@@ -73,10 +74,12 @@ def delati_portal(sitio):
     con = connect_bd()
     #filtro es una tupla con id y descripcion de la tabla keyword_search
     palabras= controller.getwords(con)
-    for filtro in palabras:
+    for filtro in palabras[8:]:
         print("\033[1;30m"+'ID_KEYWORD: '+ str(filtro[0]) + ' - PALABRA A ANALIZAR: '+ str(filtro[1]))
         #print('PALABRA A ANALIZAR: ', filtro[1])
-        fecha_max_publicacion=get_Fecha_Max_Publicacion(filtro[0])
+        
+        # fecha_max_publicacion=get_Fecha_Max_Publicacion(filtro[0])
+        
         carga = {}
         carga["pagina"] = sitio["WS_PORTAL_LABORAL"]
         carga["cant_paginas"] = sitio["WS_PAGINAS"]
@@ -93,12 +96,14 @@ def delati_portal(sitio):
             #inserta avisos en la tabla oferta y oferta_detalle
             listaOferta = webscraping_computrabajo.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
                                                     carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
-                                                    carga["id_carga"], fecha_max_publicacion)
+                                                    carga["id_carga"])
         elif sitio["WS_PORTAL_LABORAL"]=="indeed":
             listaOferta = webscraping_indeed.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
                                                     carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
                                                     carga["id_carga"])
     print("fin de filtro")
+
+'''
 
 def get_Fecha_Max_Publicacion(id_keyword):
     con = connect_bd()
@@ -111,6 +116,8 @@ def get_Fecha_Max_Publicacion(id_keyword):
                 fecha_max_publicacion=fecha_list_element[0]
                 return fecha_max_publicacion
     return fecha_max_publicacion
+
+'''
 
 if __name__ == "__main__":
     delati_portal(COMPUTRABAJO)

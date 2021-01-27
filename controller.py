@@ -23,10 +23,8 @@ class Controller:
     ##metodo añadido para insertar las tuplas del detalle de la oferta
     def registrar_detalle_oferta(self, con, listaDetalle):
         #print(listaDetalle)
-        for detalle in listaDetalle:
-            #print("----------------analizando el detalle en tuplas---------------------")
-            #print(detalle)
-            idOfertaDetalle=self.dbofertadetalle.insertOfertaDetalle(con, detalle)            
+        idOfertaDetalle=self.dbofertadetalle.insertOfertaDetalle(con, listaDetalle)            
+        
 
     def registrar_ofertas(self, con, lista_oferta):
         print(len(lista_oferta))
@@ -62,5 +60,9 @@ class Controller:
                 tuplafinal.append(a)
         return tuplafinal
 
+
     def getwords(self, conn):
         return self.dbkeyword.getwords(conn)
+
+    def evitar_redundancia(self, con, oferta):
+        return self.dboferta.evitar_redundancia(con, oferta)
