@@ -124,14 +124,22 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
                 print("EMPRESA: ", oferta["empresa"].strip() )
 
                 #OBTENEMOS LA UBICACION DEL AVISO
-                lugar   = el.find("span", {"itemprop": "addressLocality"})
-                region  = el.find("span", {"itemprop": "addressRegion"})
-                if lugar!=None:                                            
-                    oferta["lugar"]=lugar.get_text() + " - " + region.get_text()
-                else:
-                    oferta["lugar"]=''                
-                print("UBICACION: ",oferta["lugar"] )
-
+                try:
+                    lugar   = el.find("span", {"itemprop": "addressLocality"})
+                    region  = el.find("span", {"itemprop": "addressRegion"})
+                    
+                    if lugar!=None:                                            
+                        oferta["lugar"]=lugar.get_text() + " - " + region.get_text()
+                    else:
+                        oferta["lugar"]=''    
+                                
+                    print("UBICACION: ",oferta["lugar"] )
+                except:
+                    print("NO SE ENCONTRÓ LA LUGAR/REGIÓN DEL AVISO")
+                finally:
+                    lugar   = el.find("span", {"itemprop": "addressLocality"})
+                    oferta["lugar"]=lugar.get_text()
+                
                 #OBTENEMOS LA FECHA DE AVISO
                 fecha_publicacion=el.find("span",{"class":"dO"}).get_text()
                 oferta["time_publicacion"]=fecha_publicacion
