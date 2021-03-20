@@ -58,6 +58,7 @@ class DBOferta:
         except (Exception, psycopg2.DatabaseError) as error:                
             print ("-------------Exception, psycopg2.DatabaseError-------------------")
             print (error)
+            print("insertar oferta ERROR")
             mydb.close()        
             
         return id_oferta
@@ -80,6 +81,7 @@ class DBOferta:
         except (Exception, psycopg2.DatabaseError) as error:                
                 print ("-------------Exception, psycopg2.DatabaseError-------------------")
                 print (error)
+                print("insertar oferta (EVITA REDUNDANCIA) ERROR")
                 mydb.close()        
         return row
 
@@ -100,6 +102,7 @@ class DBOfertadetalle:
         except (Exception, psycopg2.DatabaseError) as error:
             print ("-------------Exception, psycopg2.DatabaseError-------------------")
             print (error)
+            print("OFERTA DETALLE UPDATE OFERTA_DETALLE ERROR")
             mydb.close()
 
     def insertOfertaDetalle(self, connection, listaDetalle):
@@ -120,10 +123,28 @@ class DBOfertadetalle:
         except (Exception, psycopg2.DatabaseError) as error:
             print ("-------------Exception, psycopg2.DatabaseError-------------------")
             print (error)
+            print("OFERTA DETALLE INSERTAR OFERTA_DETALLE ERROR")
             mydb.close()
         
         return 1
-
+    def insertOfertaDetalleJOSEFF(self, connection, detalle):
+        try:
+            mydb= connection.connect()
+            mycursor= mydb.cursor()
+            sql= "insert into oferta_detalle ( id_ofertadetalle, id_oferta, descripcion, fecha_creacion, fecha_modificacion) values (DEFAULT,%s,%s,current_date,current_date)"
+            params= (detalle["id_oferta"],detalle["descripcion"])
+            mycursor.execute(sql, params)
+            mydb.commit()
+            # close the communication with the PostgreSQL
+            mycursor.close()
+            mydb.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print ("-------------Exception, psycopg2.DatabaseError-------------------")
+            print (error)
+            mydb.close()
+            
+        return 1
+        
 class DBkeyWord:
     def __init__(self):
         pass
@@ -143,9 +164,41 @@ class DBkeyWord:
         except (Exception, psycopg2.DatabaseError) as error:
             print ("-------------Exception, psycopg2.DatabaseError-------------------")
             print (error)
+            print("KEYWORD ERROR")
             mydb.close()
         
         return palabras
+
+#JOSEF
+class DBKeyworSearch:
+    def __init__(self):
+        pass
+
+    def obtener_descripcion(self, connection):        
+        try:
+            mydb = connection.connect()
+            cur = mydb.cursor()                                    
+
+            sql = "SELECT DESCRIPCION, ID_TIPOKEYWORD FROM KEYWORD_SEARCH"
+            cur.execute(sql)  
+            
+            array_de_tuplas = []
+            row = cur.fetchone()
+            while row is not None:
+                array_de_tuplas.append(row)
+                row = cur.fetchone()
+
+            # close the communication with the PostgreSQL
+            cur.close()
+            mydb.close()                           
+
+        except (Exception, psycopg2.DatabaseError) as error:                
+                print ("-------------Exception, psycopg2.DatabaseError-------------------")
+                print (error)
+                print("JOSEFF ERROR")
+                mydb.close()        
+            
+        return array_de_tuplas
 
 class DatesDB:
     def __init__(self):

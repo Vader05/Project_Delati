@@ -1,9 +1,12 @@
-import preprocessing
-from nltk import word_tokenize
+
 from dboperation import DBWebscraping
 from dboperation import DBOferta
 from dboperation import DBOfertadetalle
 from dboperation import DBkeyWord
+#JOSEF
+from dboperation import DBKeyworSearch
+
+
 
 
 class Controller:
@@ -12,6 +15,9 @@ class Controller:
         self.dboferta = DBOferta()
         self.dbofertadetalle = DBOfertadetalle()
         self.dbkeyword = DBkeyWord()
+        #JOSEF
+        self.dbkeywordsearch = DBKeyworSearch()
+
 
     def registrar_webscraping(self, con, webscraping):
         id = self.dbwebscraping.insert_webscraping(con, webscraping)
@@ -41,12 +47,6 @@ class Controller:
             sql_result = sql_result + sql
         return sql_result
 
-    def registrar_normalizado(self, con, lista):
-        for element in lista:
-            new_words = preprocessing.normalize_words(word_tokenize(element["descripcion"]))
-            descripcion_normalizada = " ".join(new_words)
-            element["descripcion_normalizada"] = descripcion_normalizada
-        # DBOfertadetalle.update_requisito(con, element)
 
     #prepara descripcion en una lista de diccionarios para el insert en oferta_detalle
     def analizaSegundoLi(self,tuplas, row):
@@ -66,3 +66,11 @@ class Controller:
 
     def evitar_redundancia(self, con, oferta):
         return self.dboferta.evitar_redundancia(con, oferta)
+
+
+    #JOSEFF
+    def registrar_oferta_detalle(self, con, oferta_detalle):
+        idResult = self.dbofertadetalle.insertOfertaDetalleJOSEFF(con, oferta_detalle)    
+
+    def obtener_keyword_search(self, con):  
+        return self.dbkeywordsearch.obtener_descripcion(con)

@@ -7,32 +7,19 @@ from controller import Controller
 from dbconnection import Connection
 from dboperation import DatesDB
 import datetime
-'''
-def construir_busqueda_filtro(carga, filtro):
-    carga["busqueda"] = filtro
-    busqueda = ""
-    if carga["busqueda"] is not None:
-        busqueda = "-busqueda-" + carga["busqueda"].replace(" ", "-")
+import webscraping_buscojobs
 
-    busqueda_area = ""
-    if carga["busqueda_area"] not in ("", None):
-        busqueda_area = "-area-" + carga["busqueda_area"].replace(" ", "-")
+#JOSEF
+def set_url_busqueda_buscojobs(carga):
+    #MODIFICADO URL BUSCOJOBS
+    carga["url_principal"] = BUSCOJOBS["WS_PORTAL_LABORAL_URL"]
+    #urlbusqueda = "/ofertas/tc25/trabajo-de-tecnologias-de-la-informacion"
+    carga["paginado"] = "/"
+    #carga["url_prefix"] = carga["url_principal"] + urlbusqueda + paginado
+    carga["url_sufix"] = ""
+    #carga["url_busqueda"] = carga["url_principal"] + urlbusqueda    
 
-    total = ""
-    if busqueda == "" and busqueda_area == "":
-        total = ""
-    carga["url_principal"] = WS_PORTAL_LABORAL_URL
-    urlbusqueda = "/trabajo-de-analista-programador-en-lima?q=analista%20programador"
-    paginado = "&p="
 
-    extension = ""
-    ordenado = ""
-    carga["url_prefix"] = carga["url_principal"] + urlbusqueda + paginado
-    carga["url_sufix"] = extension + ordenado
-
-    carga["url_pagina"] = carga["url_principal"]
-    carga["url_busqueda"] = urlbusqueda
-'''
 #construyendo url de busqueda computrabajo con filtro en lima
 def url_busqueda_computrabajo(filtro):
     #busqueda = "trabajo-de-" + filtro.replace(" ", "-")+"-en-lima?q="+filtro.replace(" ","%20")
@@ -75,7 +62,7 @@ def delati_portal(sitio):
     con = connect_bd()
     #filtro es una tupla con id y descripcion de la tabla keyword_search
     palabras= controller.getwords(con)
-    for filtro in palabras:
+    for filtro in palabras[32:]:
         print("\033[1;30m"+'ID_KEYWORD: '+ str(filtro[0]) + ' - PALABRA A ANALIZAR: '+ str(filtro[1]))
         carga = {}
         carga["pagina"] = sitio["WS_PORTAL_LABORAL"]
@@ -101,10 +88,41 @@ def delati_portal(sitio):
     print("fin de filtro")
 
 
+#JOSEF
+def delati_buscojobs():
+    controller = Controller()
+    con = connect_bd()
+    carga = {}
+    carga["pagina"] = BUSCOJOBS["WS_PORTAL_LABORAL"]
+    carga["cant_paginas"] = BUSCOJOBS["WS_PAGINAS"]
+    carga["pagina_inicial"] = BUSCOJOBS["WS_PAGINA_INICIAL"]
+    carga["cant_ofertas"] = BUSCOJOBS["WS_OFERTAS"]
+    carga["busqueda_area"] = BUSCOJOBS["WS_AREA"]
+    carga["delati_team"] = BUSCOJOBS["NAME_TEAM"]
+    carga["busqueda"] = ""
+    set_url_busqueda_buscojobs(carga)
+
+    for type_search in webscraping_buscojobs.obtener_lista_keywords(con):
+        carga["url_prefix"] = carga["url_principal"] + type_search['descripcion'] + carga["paginado"]
+        carga["url_busqueda"] = carga["url_principal"] + type_search['descripcion']
+
+        carga["id_keyword"] = type_search['id']
+        carga["id_carga"] = controller.registrar_webscraping(con, carga)
+
+        listaOferta = webscraping_buscojobs.scraping_ofertas(con, carga["url_principal"], carga["url_prefix"], carga["url_sufix"],
+                                               carga["pagina_inicial"], carga["cant_paginas"], carga["cant_ofertas"],
+                                               carga["id_carga"])
+    #print(listaOferta)
+
+
 
 if __name__ == "__main__":
-    
-    delati_portal(INDEED)
     delati_portal(COMPUTRABAJO)
+    #josef
+    delati_buscojobs()
+    delati_portal(INDEED)
+
+
+   
 
 
