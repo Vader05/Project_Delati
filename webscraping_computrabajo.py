@@ -7,6 +7,7 @@ from controller import Controller
 from configuration import COMPUTRABAJO, DATES
 import datetime
 from timeit import default_timer
+import unicodedata
 
 def contain_br(contents):
     for element in contents:
@@ -33,7 +34,9 @@ def get_fecha_publicacion(fecha_actual, fecha_publicacion):
     #print('FECHA HOY:',fecha_actual)
     #print('FECHA PUBLICACION',fecha_publicacion)
     array_fecha_publicacion=fecha_publicacion.split(" ")
-    if array_fecha_publicacion[0].strip()=="Ayer,":
+    if array_fecha_publicacion[0].strip()=="Hace":
+        fecha_aviso=fecha_actual.date()+datetime.timedelta(days=-30)  
+    elif array_fecha_publicacion[0].strip()=="Ayer,":
         fecha_aviso=fecha_actual.date()+datetime.timedelta(days=-1)
         #print('FECHA PUBLICACION AVISO:', fecha_aviso)
     else:

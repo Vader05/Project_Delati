@@ -62,7 +62,7 @@ def delati_portal(sitio):
     con = connect_bd()
     #filtro es una tupla con id y descripcion de la tabla keyword_search
     palabras= controller.getwords(con)
-    for filtro in palabras[32:]:
+    for filtro in palabras:
         print("\033[1;30m"+'ID_KEYWORD: '+ str(filtro[0]) + ' - PALABRA A ANALIZAR: '+ str(filtro[1]))
         carga = {}
         carga["pagina"] = sitio["WS_PORTAL_LABORAL"]

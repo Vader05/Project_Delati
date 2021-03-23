@@ -1,10 +1,10 @@
 
 # DATABASE
 DATABASE = {
-    "DB_HOST" : "161.35.60.197",
-    "DB_SERVICE" : "tcs7",
-    "DB_USER" : "modulo4",
-    "DB_PASSWORD" : "modulo4"
+    "DB_HOST" : "35.232.226.193",
+    "DB_SERVICE" : "postgres",
+    "DB_USER" : "postgres",
+    "DB_PASSWORD" : "Oneokrock1"
 }
 
 #DATE
