@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -- coding: utf-8 --
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import bs4
@@ -91,7 +91,7 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
                 reqDeta = requests.get(oferta["url"])            
                 soup_deta = BeautifulSoup(reqDeta.text, "lxml")
 
-                oferta_d=soup_deta.find("div", attrs={"class":"oferta-main-top"})                    
+                oferta_d=soup_deta.find("div", attrs={"class":"row OfertaDetalle_oferta_main__TT30V no-margin-top-md"})                    
                 try:
                     oferta["empresa"] = elimina_tildes(oferta_d.find("h2", attrs={"class":""}).get_text().strip())
                 except:
@@ -101,7 +101,7 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
 
                 try: 
-                    oferta["area"]=elimina_tildes(oferta_d.findAll("a", attrs={"class": ""})[-1].get_text().strip())
+                    oferta["area"]=elimina_tildes(oferta_d.findAll("h2", attrs={"class": ""})[-1].get_text().strip())
                 except:
                     oferta["area"] = "NO ESPECIFICADO"
                 
@@ -109,14 +109,14 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
 
                 try:
                     paga = soup_deta.findAll("div", attrs={"class": "row oferta-contenido"})
-                    str3 = paga[0].get_text().splitlines()
+                    str3 = paga[1].get_text().splitlines()
                     str3 = list(filter(None, str3))
                     if(str3[2][0] == 'S'):
                         oferta["salario"] = elimina_tildes(str3[2].split(":")[-1].strip())
                 except:
                     print("except")
                 
-                aviso_deta = soup_deta.find("div", attrs={"class":"col-md-12 descripcion-texto"})
+                aviso_deta = soup_deta.find("div", attrs={"class":"col-md-12 OfertaDetalle_descripcion_texto__23N6u"})
                 if aviso_deta!=None:                                            
                     oferta["detalle"]=elimina_tildes(aviso_deta.get_text().strip()[0:800])
                 else:
@@ -199,10 +199,13 @@ def elimina_tildes(cadena):
     return s.upper()
 
 def fecha_publicacion(modalidad, tiempo):
+    #[-1] = mes-dias-ayer-hoy
+    #[-2]= 25-publicado-un
+    tiemponum = 1
     if(tiempo == "UN"):
-        tiempo = 1
+        tiemponum = 1
 
-    tiempo = int(tiempo)
+    tiempo = int(tiemponum)
     switcher = {
         "HORAS": datetime.now() + timedelta(days=-tiempo/24),       
         "DIA":   datetime.now() + timedelta(days=-1),
