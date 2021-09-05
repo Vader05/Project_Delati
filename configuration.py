@@ -1,8 +1,8 @@
 
 # DATABASE
 DATABASE = {
-    "DB_HOST" : "35.232.226.193",
-    "DB_SERVICE" : "postgres",
+    "DB_HOST" : "35.188.118.46",
+    "DB_SERVICE" : "BD-Jobby",
     "DB_USER" : "postgres",
     "DB_PASSWORD" : "Oneokrock1"
 }
@@ -49,7 +49,7 @@ INDEED= {
 BUSCOJOBS= {
     "WS_PORTAL_LABORAL" : "buscojobs",
     "WS_PORTAL_LABORAL_URL" : "https://www.buscojobs.pe",
-    "WS_PAGINAS" : 2,  # 500 CANTIDAD DE PAGINAS A SCRAPEAR
+    "WS_PAGINAS" : 20,  # 500 CANTIDAD DE PAGINAS A SCRAPEAR
     "WS_PAGINA_INICIAL" : 1,  # NUMERO DE PAGINA DESDE DONDE SE EMPEZARA A SCRAPEAR
     "WS_OFERTAS" : None,  # CANTIDAD DE OFERTAS POR PAGINA A SCRAPEAR (None: Sin limite)
     "WS_AREA" : None,  # FILTRO DE AREA PARA REALIZAR LA BUSQUEDA (None: Sin filtro)

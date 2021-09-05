@@ -104,6 +104,7 @@ def delati_buscojobs():
 
     for type_search in webscraping_buscojobs.obtener_lista_keywords(con):
         carga["url_prefix"] = carga["url_principal"] + type_search['descripcion'] + carga["paginado"]
+        print(carga["url_prefix"])
         carga["url_busqueda"] = carga["url_principal"] + type_search['descripcion']
 
         carga["id_keyword"] = type_search['id']
@@ -117,10 +118,10 @@ def delati_buscojobs():
 
 
 if __name__ == "__main__":
-    delati_portal(COMPUTRABAJO)
-    #josef
+    #jossef
     delati_buscojobs()
-    delati_portal(INDEED)
+    #delati_portal(COMPUTRABAJO)
+   # delati_portal(INDEED)
 
 
    

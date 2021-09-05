@@ -47,9 +47,10 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
         req = requests.get(url_pagina)
         soup = BeautifulSoup(req.text, "lxml")
         try:
-            avisos=soup.findAll("div", attrs={"class":"row result click"})                            
+            avisos=soup.findAll("div", attrs={"class":"row ListadoOfertas_result__1HWjY click undefined"})                            
         except:
             avisos=[]
+            print("no se encontro nada")
 
         lista_oferta = []
         for el in avisos:
@@ -57,9 +58,9 @@ def scraping_ofertas(con, url_principal, prefix_url, sufix_url, pagina_inicial, 
             oferta = {}    
 
 
-            href = el.find("a")['href'][2:]
-            link = "http://" + href
-            
+            href = el.find("a")['href']
+            link = "https://www.buscojobs.pe" + href
+            print(link)
             oferta["id_carga"] = id_carga
             # Almacena la url de la pagina
             oferta["url_pagina"] = url_pagina
@@ -185,7 +186,7 @@ def obtener_lista_keywords(con):
     for search in controller.obtener_keyword_search(con): 
         busqueda = {}
         if search != None:
-            busqueda["descripcion"] = '/search/' + search[0].replace(" ", "-").replace(".", "")
+            busqueda["descripcion"] = '/ofertas/' + search[0].replace(" ", "-").replace(".", "") + "_"
             busqueda["id"] = i
             lista_busquedas.append(busqueda)
             i += 1

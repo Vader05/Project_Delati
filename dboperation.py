@@ -179,7 +179,7 @@ class DBKeyworSearch:
             mydb = connection.connect()
             cur = mydb.cursor()                                    
 
-            sql = "SELECT DESCRIPCION, ID_TIPOKEYWORD FROM KEYWORD_SEARCH"
+            sql = "SELECT DESCRIPCION, ID_KEYWORD FROM KEYWORD_SEARCH"
             cur.execute(sql)  
             
             array_de_tuplas = []
